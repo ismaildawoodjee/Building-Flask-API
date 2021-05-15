@@ -3,8 +3,9 @@ from sqlite3 import Connection as SQLite3Connection
 from datetime import datetime
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
-from flask import Flask, request, jsonify
+from flask import Flask, json, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+import linked_list
 
 # Flask app
 app = Flask(__name__)
@@ -72,7 +73,25 @@ def create_user():
 
 @app.route("/user/descending_id", methods=["GET"])
 def get_all_users_descending():
-    pass
+    """Get all users in descending order, after first storing their
+    data within a linked list. Returning 200 if successful.
+    """
+
+    users = User.query.all()
+    all_users_ll = linked_list.LinkedList()
+
+    for user in users:
+        all_users_ll.insert_beginning(
+            {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "address": user.address,
+                "phone": user.phone
+            }
+        )
+    
+    return jsonify(all_users_ll.to_list()), 200
 
 @app.route("/user/ascending_id", methods=["GET"])
 def get_all_users_ascending():

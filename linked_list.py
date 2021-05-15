@@ -4,9 +4,9 @@
 class Node:
     """Node class to hold data and point to the next node."""
 
-    def __init__(self, data, next):
+    def __init__(self, data=None, next_=None):
         self.data = data
-        self.next = None
+        self.next_ = next_
 
     def __repr__(self):
         return f"[{self.data}]"
@@ -19,6 +19,20 @@ class LinkedList:
         self.head = None
         self.tail = None
 
+    def to_list(self):
+        """Convert linked list to a normal Python list."""
+        alist = []
+        if self.head is None:
+            return alist
+        
+        # traverse through linked list
+        node = self.head
+        while node:
+            alist.append(node.data)
+            node = node.next_
+        
+        return alist
+
     def __repr__(self):
         nodes = []
         node = self.head
@@ -26,11 +40,11 @@ class LinkedList:
         while node:
             if node is self.head:
                 nodes.append(f"[Head: {node.data}]")
-            elif node.next is None:
+            elif node.next_ is None:
                 nodes.append(f"[Tail: {node.data}]")
             else:
                 nodes.append(f"[{node.data}]")
-            node = node.next
+            node = node.next_
 
         return '-> '.join(nodes)
 
@@ -41,7 +55,7 @@ class LinkedList:
             print(None)
         while node:
             ll_string += f"{str(node.data)} -> "
-            node = node.next
+            node = node.next_
 
         ll_string += "None"
         print(ll_string)
@@ -51,9 +65,9 @@ class LinkedList:
         if self.head is None:
             self.head = Node(data, None)
             self.tail = self.head
-
-        new = Node(data, self.head)
-        self.head = new
+        else:
+            new = Node(data, self.head)
+            self.head = new
 
     def insert_at_end(self, data):
         """New node inserted at the end of linked list"""
@@ -61,5 +75,5 @@ class LinkedList:
             self.insert_beginning(data)
             return
 
-        self.tail.next = Node(data, None)
-        self.tail = self.tail.next
+        self.tail.next_ = Node(data, None)
+        self.tail = self.tail.next_
