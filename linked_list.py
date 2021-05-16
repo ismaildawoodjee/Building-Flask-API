@@ -77,3 +77,14 @@ class LinkedList:
 
         self.tail.next_ = Node(data, None)
         self.tail = self.tail.next_
+
+    def get_user_by_id(self, user_id):
+        """Method to get the user specified by ID"""
+
+        node = self.head
+        while node:
+            if node.data["id"] == int(user_id):
+                return node.data
+            node = node.next_
+
+        return None

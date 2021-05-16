@@ -16,6 +16,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sqlitedb.file"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = 0
 
 # Configure SQLite3 to enforce foreign key constraints
+
+
 @event.listens_for(Engine, "connect")
 def _set_sqlite_pragma(dbapi_connection, connection_record):
     """Looks like once the DB Engine is connected, 
@@ -33,6 +35,8 @@ db = SQLAlchemy(app)
 now = datetime.now()
 
 # Class models for each table in the database
+
+
 class User(db.Model):
     """Model for creating the User table with columns."""
     __tablename__ = "user"
@@ -41,7 +45,9 @@ class User(db.Model):
     email = db.Column(db.String(64))
     address = db.Column(db.String(256))
     phone = db.Column(db.String(64))
-    posts = db.relationship("BlogPost")  # foreign key for BlogPost
+    # foreign key for BlogPost
+    posts = db.relationship("BlogPost", cascade="all, delete")
+
 
 class BlogPost(db.Model):
     """Table class for BlogPost model, 
@@ -53,6 +59,7 @@ class BlogPost(db.Model):
     body = db.Column(db.String(256))
     date = db.Column(db.Date)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
 
 @app.route("/user", methods=["POST"])
 def create_user():
@@ -70,6 +77,7 @@ def create_user():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": "User created"}), 200
+
 
 @app.route("/user/descending_id", methods=["GET"])
 def get_all_users_descending():
@@ -90,21 +98,65 @@ def get_all_users_descending():
                 "phone": user.phone
             }
         )
-    
+
     return jsonify(all_users_ll.to_list()), 200
+
 
 @app.route("/user/ascending_id", methods=["GET"])
 def get_all_users_ascending():
-    pass
+    """Get all users in ascending order, after first storing their
+    data within a linked list. Returning 200 if successful.
+    """
+
+    users = User.query.all()
+    all_users_ll = linked_list.LinkedList()
+
+    for user in users:
+        all_users_ll.insert_at_end(
+            {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "address": user.address,
+                "phone": user.phone
+            }
+        )
+
+    return jsonify(all_users_ll.to_list()), 200
+
 
 @app.route("/user/<user_id>", methods=["GET"])
 def get_one_user(user_id):
-    pass
+
+    users = User.query.all()
+    all_users_ll = linked_list.LinkedList()
+
+    for user in users:
+        all_users_ll.insert_at_end(
+            {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "address": user.address,
+                "phone": user.phone
+            }
+        )
+
+    user = all_users_ll.get_user_by_id(user_id)
+    return jsonify(user), 200
 
 
 @app.route("/user/<user_id>", methods=["DELETE"])
 def delete_user(user_id):
-    pass
+    """Query user and delete them. But if user table references another
+    blog post table via foreign key, the blog posts also need to be deleted.
+    """
+
+    user = User.query.filter_by(id=user_id).first()
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({}), 200
 
 
 @app.route("/blog_post/<user_id>", methods=["POST"])
