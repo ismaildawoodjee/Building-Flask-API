@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 import linked_list
 import hash_table
 import binary_search_tree
+import custom_queue
 
 import random
 
@@ -204,12 +205,37 @@ def get_one_blog_post(blog_post_id):
     
     if not post:
         return jsonify({"message": "post not found"})
-    return jsonify(post)
+    return jsonify(post), 200
 
 
-@app.route("/blog_post/<blog_post_id>", methods=["GET"])
-def get_one_blog_post(user_id):
-    pass
+@app.route("/blog_post/numeric_body", methods=["GET"])
+def get_numeric_post_bodies():
+    """Convert all characters in a blog post into a number and sum them
+    up. For what?
+    """
+    blog_posts = BlogPost.query.all()
+
+    q = custom_queue.Queue()
+    for post in blog_posts:
+        q.enqueue(post)
+
+    return_list = []
+    for _ in range(len(blog_posts)):
+        post = q.dequeue()
+        numeric_body = 0
+        for char in post.data.body:
+            numeric_body += ord(char)
+
+        post.data.body = numeric_body
+
+        return_list.append({
+            "id": post.data.id,
+            "title": post.data.title,
+            "body": post.data.body,
+            "user_ud": post.data.user_id
+        })
+
+    return jsonify(return_list), 200
 
 
 @app.route("/blog_post/<blog_post_id>", methods=["DELETE"])
